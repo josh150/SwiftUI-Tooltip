@@ -8,7 +8,7 @@
 
 import SwiftUI
 
-protocol TooltipConfig {
+public protocol TooltipConfig {
     // MARK: Alignment
 
     var side: TooltipSide { get set }
@@ -39,4 +39,12 @@ protocol TooltipConfig {
     var enableAnimation: Bool { get set }
     var animationOffset: CGFloat { get set }
     var animationTime: Double { get set }
+}
+
+public extension TooltipConfig {
+	func with(side: TooltipSide) -> Self {
+		var copy = self
+		copy.side = side
+		return copy
+	}
 }

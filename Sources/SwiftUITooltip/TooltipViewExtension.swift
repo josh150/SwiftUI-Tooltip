@@ -8,11 +8,9 @@
 
 import SwiftUI
 
-extension View {
+public extension View {
     func tooltip<TooltipContent: View>(@ViewBuilder content: @escaping () -> TooltipContent) -> some View {
-        let config: TooltipConfig = DefaultTooltipConfig.shared
-
-        return modifier(TooltipModifier(config: config, content: content))
+        modifier(TooltipModifier(config: DefaultTooltipConfig.shared, content: content))
     }
 
     func tooltip<TooltipContent: View>(config: TooltipConfig, @ViewBuilder content: @escaping () -> TooltipContent) -> some View {
@@ -20,16 +18,10 @@ extension View {
     }
 
     func tooltip<TooltipContent: View>(_ side: TooltipSide, @ViewBuilder content: @escaping () -> TooltipContent) -> some View {
-        var config = DefaultTooltipConfig.shared
-        config.side = side
-
-        return modifier(TooltipModifier(config: config, content: content))
+       modifier(TooltipModifier(config: DefaultTooltipConfig.shared.with(side: side), content: content))
     }
     
     func tooltip<TooltipContent: View>(_ side: TooltipSide, config: TooltipConfig, @ViewBuilder content: @escaping () -> TooltipContent) -> some View {
-        var config = config
-        config.side = side
-
-        return modifier(TooltipModifier(config: config, content: content))
+        modifier(TooltipModifier(config: config.with(side: side), content: content))
     }
 }

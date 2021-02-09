@@ -185,9 +185,21 @@ struct TooltipModifier<TooltipContent: View>: ViewModifier {
 
 struct Tooltip_Previews: PreviewProvider {
     static var previews: some View {
-        Text("Say something nice...")
-            .tooltip(.top, config: DefaultTooltipConfig()) {
-                Text("Something nice!")
-            }
+		VStack(spacing: 100) {
+			Text("Say something nice...")
+				.tooltip {
+					Text("Something nice!")
+				}
+			
+			Text("Say something nice...")
+				.tooltip(.leading) {
+					Text("Something!")
+				}
+			
+			Text("Say something nice...")
+				.tooltip(.top, config: DefaultTooltipConfig()) {
+					Text("Something nice!")
+				}
+		}
     }
 }

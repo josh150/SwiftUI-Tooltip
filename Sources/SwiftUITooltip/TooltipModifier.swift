@@ -75,6 +75,28 @@ struct TooltipModifier<TooltipContent: View>: ViewModifier {
         }
     }
 
+	var arrowBackgroundOffsetX: CGFloat {
+		switch config.side {
+		case .bottom, .center, .top:
+			return 0
+		case .leading, .leadingTop, .leadingBottom:
+			return -1
+		case .trailing, .trailingTop, .trailingBottom:
+			return 1
+		}
+	}
+
+	var arrowBackgroundOffsetY: CGFloat {
+		switch config.side {
+		case .leading, .center, .trailing:
+			return 0
+		case .top, .trailingTop, .leadingTop:
+			return -1
+		case .bottom, .leadingBottom, .trailingBottom:
+			return 1
+		}
+	}
+
     // MARK: - Helper functions
 
     private func offsetHorizontal(_ g: GeometryProxy) -> CGFloat {
@@ -102,16 +124,16 @@ struct TooltipModifier<TooltipContent: View>: ViewModifier {
     // MARK: - Animation stuff
     
     private func dispatchAnimation() {
-        if (config.enableAnimation) {
-            DispatchQueue.main.asyncAfter(deadline: .now() + config.animationTime) {
-                self.animationOffset = config.animationOffset
-                DispatchQueue.main.asyncAfter(deadline: .now() + config.animationTime*0.1) {
-                    self.animationOffset = 0
-                    
-                    self.dispatchAnimation()
-                }
-            }
-        }
+		guard config.enableAnimation else { return }
+
+		DispatchQueue.main.asyncAfter(deadline: .now() + config.animationTime) {
+			self.animationOffset = config.animationOffset
+			
+			DispatchQueue.main.asyncAfter(deadline: .now() + config.animationTime*0.1) {
+				self.animationOffset = 0
+				self.dispatchAnimation()
+			}
+		}
     }
 
     // MARK: - TooltipModifier Body Properties
@@ -127,28 +149,42 @@ struct TooltipModifier<TooltipContent: View>: ViewModifier {
     }
 
     private var arrowView: some View {
-        return ArrowShape()
+		ArrowShape()
             .rotation(Angle(radians: self.arrowRotation))
-            .stroke(Color.black)
+			.stroke(
+				self.config.borderWidth == 0 ? Color.clear : self.config.borderColor,
+				lineWidth: self.config.borderWidth
+			)
+			.background(
+				ArrowShape()
+					.rotation(Angle(radians: self.arrowRotation))
+					.fill(self.config.backgroundColor)
+					.offset(x: self.arrowBackgroundOffsetX, y: self.arrowBackgroundOffsetY)
+			)
             .frame(width: self.config.arrowWidth, height: self.config.arrowHeight)
-            .offset(x: self.arrowOffsetX, y: self.arrowOffsetY)
+			.offset(x: self.arrowOffsetX, y: self.arrowOffsetY)
+
     }
 
     private var arrowCutoutMask: some View {
-        return ZStack {
+		ZStack {
             Rectangle()
                 .frame(
                     width: self.contentWidth + self.config.borderWidth * 2,
-                    height: self.contentHeight + self.config.borderWidth * 2)
+                    height: self.contentHeight + self.config.borderWidth * 2
+				)
                 .foregroundColor(.white)
+
             Rectangle()
                 .frame(
                     width: self.config.arrowWidth,
-                    height: self.config.arrowHeight + self.config.borderWidth)
+                    height: self.config.arrowHeight + self.config.borderWidth
+				)
                 .rotationEffect(Angle(radians: self.arrowRotation))
                 .offset(
                     x: self.arrowOffsetX,
-                    y: self.arrowOffsetY)
+                    y: self.arrowOffsetY
+				)
                 .foregroundColor(.black)
         }
         .compositingGroup()
@@ -159,15 +195,25 @@ struct TooltipModifier<TooltipContent: View>: ViewModifier {
         GeometryReader { g in
             ZStack {
                 RoundedRectangle(cornerRadius: self.config.borderRadius)
-                    .stroke(self.config.borderWidth == 0 ? Color.clear : self.config.borderColor)
+					.stroke(
+						self.config.borderWidth == 0 ? Color.clear : self.config.borderColor,
+						lineWidth: self.config.borderWidth
+					)
+					.background(
+						RoundedRectangle(cornerRadius: self.config.borderRadius)
+							.fill(self.config.backgroundColor)
+					)
                     .frame(width: self.contentWidth, height: self.contentHeight)
                     .mask(self.arrowCutoutMask)
+
                 ZStack {
                     content
                         .padding(self.config.contentPaddingEdgeInsets)
-                }.background(self.sizeMeasurer)
-                    .overlay(self.arrowView)
-            }.offset(x: self.offsetHorizontal(g), y: self.offsetVertical(g))
+                }
+				.background(self.sizeMeasurer)
+				.overlay(self.arrowView)
+            }
+			.offset(x: self.offsetHorizontal(g), y: self.offsetVertical(g))
             .animation(.easeInOut)
             .onAppear {
                 self.dispatchAnimation()
@@ -184,6 +230,15 @@ struct TooltipModifier<TooltipContent: View>: ViewModifier {
 }
 
 struct Tooltip_Previews: PreviewProvider {
+	static let customConfig: TooltipConfig = {
+		var config = DefaultTooltipConfig()
+		config.arrowHeight = 15
+		config.arrowWidth = 25
+		config.borderColor = Color.green
+		config.borderRadius = 0
+		return config
+	}()
+
     static var previews: some View {
 		VStack(spacing: 100) {
 			Text("Say something nice...")
@@ -197,9 +252,10 @@ struct Tooltip_Previews: PreviewProvider {
 				}
 			
 			Text("Say something nice...")
-				.tooltip(.top, config: DefaultTooltipConfig()) {
+				.tooltip(.top, config: customConfig) {
 					Text("Something nice!")
 				}
 		}
+		.background(Color.gray)
     }
 }

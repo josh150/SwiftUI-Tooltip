@@ -15,7 +15,7 @@ public protocol TooltipConfig {
     var margin: CGFloat { get set }
 
     // MARK: - Tooltip container
-
+	var backgroundColor: Color { get set }
     var borderRadius: CGFloat { get set }
     var borderWidth: CGFloat { get set }
     var borderColor: Color { get set }

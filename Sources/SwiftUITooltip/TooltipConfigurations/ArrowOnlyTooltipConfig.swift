@@ -14,6 +14,7 @@ public struct ArrowOnlyTooltipConfig: TooltipConfig {
 	public var side: TooltipSide = .bottom
 	public var margin: CGFloat = 8
 
+	public var backgroundColor: Color = Color.white
 	public var borderRadius: CGFloat = 8
 	public var borderWidth: CGFloat = 0
 	public var borderColor: Color = Color.primary

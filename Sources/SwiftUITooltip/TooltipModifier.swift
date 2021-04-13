@@ -10,14 +10,15 @@ import SwiftUI
 
 struct TooltipModifier<TooltipContent: View>: ViewModifier {
     // MARK: - Uninitialised properties
-
+	@Binding var isPresented: Bool
     var config: TooltipConfig
     var content: TooltipContent
 
     // MARK: - Initialisers
 
-    init(config: TooltipConfig, @ViewBuilder content: @escaping () -> TooltipContent) {
-        self.config = config
+	init(isPresented: Binding<Bool>, config: TooltipConfig, @ViewBuilder content: @escaping () -> TooltipContent) {
+		self._isPresented = isPresented
+		self.config = config
         self.content = content()
     }
 
@@ -100,14 +101,21 @@ struct TooltipModifier<TooltipContent: View>: ViewModifier {
     // MARK: - Helper functions
 
     private func offsetHorizontal(_ g: GeometryProxy) -> CGFloat {
+		let offset: CGFloat
+
         switch config.side {
         case .leading, .leadingTop, .leadingBottom:
-            return -(contentWidth + config.margin + actualArrowHeight + animationOffset)
+			offset = -(contentWidth + config.margin + actualArrowHeight + animationOffset)
+
         case .trailing, .trailingTop, .trailingBottom:
-            return g.size.width + config.margin + actualArrowHeight + animationOffset
+			offset = g.size.width + config.margin + actualArrowHeight + animationOffset
+
         case .top, .center, .bottom:
-            return (g.size.width - contentWidth) / 2
+            offset = (g.size.width - contentWidth) / 2
         }
+
+
+		return offset
     }
 
     private func offsetVertical(_ g: GeometryProxy) -> CGFloat {
@@ -224,38 +232,64 @@ struct TooltipModifier<TooltipContent: View>: ViewModifier {
     // MARK: - ViewModifier properties
 
     func body(content: Content) -> some View {
-        content
-            .overlay(tooltipBody)
+		Group {
+			if isPresented {
+				content
+					.overlay(tooltipBody)
+			} else {
+				content
+			}
+		}
     }
 }
 
 struct Tooltip_Previews: PreviewProvider {
-	static let customConfig: TooltipConfig = {
-		var config = DefaultTooltipConfig()
-		config.arrowHeight = 15
-		config.arrowWidth = 25
-		config.borderColor = Color.green
-		config.borderRadius = 0
-		return config
-	}()
+	struct PreviewView: View {
+		let customConfig: TooltipConfig = {
+			var config = DefaultTooltipConfig()
+			config.arrowHeight = 15
+			config.arrowWidth = 25
+			config.borderColor = Color.green
+			config.borderRadius = 0
+			return config
+		}()
+
+		@State private var isPresented: Bool = true
+
+		var body: some View {
+			HStack {
+				VStack(spacing: 100) {
+					Text("Say something nice...")
+						.tooltip(isPresented: .constant(true)) {
+							Text("Something nice!")
+						}
+
+					Text("Say something nice...")
+						.tooltip(isPresented: .constant(true), side: .leading) {
+							Text("Something!")
+						}
+
+					Text("Say something nice...")
+						.onTapGesture {
+							withAnimation { isPresented.toggle() }
+						}
+						.tooltip(isPresented: $isPresented, side: .top, config: customConfig) {
+							Text("Something nice!")
+						}
+				}
+
+				Spacer()
+
+				VStack {
+					Text("Nice")
+				}
+			}
+			.padding()
+			.background(Color.gray)
+		}
+	}
 
     static var previews: some View {
-		VStack(spacing: 100) {
-			Text("Say something nice...")
-				.tooltip {
-					Text("Something nice!")
-				}
-			
-			Text("Say something nice...")
-				.tooltip(.leading) {
-					Text("Something!")
-				}
-			
-			Text("Say something nice...")
-				.tooltip(.top, config: customConfig) {
-					Text("Something nice!")
-				}
-		}
-		.background(Color.gray)
+		PreviewView()
     }
 }

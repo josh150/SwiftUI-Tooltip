@@ -9,19 +9,19 @@
 import SwiftUI
 
 public extension View {
-    func tooltip<TooltipContent: View>(@ViewBuilder content: @escaping () -> TooltipContent) -> some View {
-        modifier(TooltipModifier(config: DefaultTooltipConfig.shared, content: content))
+	func tooltip<TooltipContent: View>(isPresented: Binding<Bool>, @ViewBuilder content: @escaping () -> TooltipContent) -> some View {
+        modifier(TooltipModifier(isPresented: isPresented, config: DefaultTooltipConfig.shared, content: content))
     }
 
-    func tooltip<TooltipContent: View>(config: TooltipConfig, @ViewBuilder content: @escaping () -> TooltipContent) -> some View {
-        modifier(TooltipModifier(config: config, content: content))
+    func tooltip<TooltipContent: View>(isPresented: Binding<Bool>, config: TooltipConfig, @ViewBuilder content: @escaping () -> TooltipContent) -> some View {
+        modifier(TooltipModifier(isPresented: isPresented, config: config, content: content))
     }
 
-    func tooltip<TooltipContent: View>(_ side: TooltipSide, @ViewBuilder content: @escaping () -> TooltipContent) -> some View {
-       modifier(TooltipModifier(config: DefaultTooltipConfig.shared.with(side: side), content: content))
+    func tooltip<TooltipContent: View>(isPresented: Binding<Bool>, side: TooltipSide, @ViewBuilder content: @escaping () -> TooltipContent) -> some View {
+       modifier(TooltipModifier(isPresented: isPresented, config: DefaultTooltipConfig.shared.with(side: side), content: content))
     }
     
-    func tooltip<TooltipContent: View>(_ side: TooltipSide, config: TooltipConfig, @ViewBuilder content: @escaping () -> TooltipContent) -> some View {
-        modifier(TooltipModifier(config: config.with(side: side), content: content))
+    func tooltip<TooltipContent: View>(isPresented: Binding<Bool>, side: TooltipSide, config: TooltipConfig, @ViewBuilder content: @escaping () -> TooltipContent) -> some View {
+        modifier(TooltipModifier(isPresented: isPresented, config: config.with(side: side), content: content))
     }
 }

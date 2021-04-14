@@ -12,7 +12,8 @@ public protocol TooltipConfig {
     // MARK: Alignment
 
     var side: TooltipSide { get set }
-    var margin: CGFloat { get set }
+    var marginX: CGFloat { get set }
+	var marginY: CGFloat { get set }
 
     // MARK: - Tooltip container
 	var backgroundColor: Color { get set }

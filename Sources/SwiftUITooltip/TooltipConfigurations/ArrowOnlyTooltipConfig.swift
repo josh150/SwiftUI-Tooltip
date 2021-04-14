@@ -12,7 +12,8 @@ public struct ArrowOnlyTooltipConfig: TooltipConfig {
     static var shared = ArrowOnlyTooltipConfig()
 
 	public var side: TooltipSide = .bottom
-	public var margin: CGFloat = 8
+	public var marginX: CGFloat = 8
+	public var marginY: CGFloat = 8
 
 	public var backgroundColor: Color = Color.white
 	public var borderRadius: CGFloat = 8

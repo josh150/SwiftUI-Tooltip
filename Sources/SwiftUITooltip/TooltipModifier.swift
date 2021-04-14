@@ -31,27 +31,30 @@ struct TooltipModifier<TooltipContent: View>: ViewModifier {
 
     // MARK: - Computed properties
 
-    var arrowRotation: Double { Double(config.side.rawValue) * .pi / 4 }
     var actualArrowHeight: CGFloat { config.showArrow ? config.arrowHeight : 0 }
 
     var arrowOffsetX: CGFloat {
         switch config.side {
         case .bottom, .center, .top:
             return 0
+
         case .leading:
             return (contentWidth / 2 + config.arrowHeight / 2)
+
         case .leadingTop, .leadingBottom:
             return (contentWidth / 2
-                + config.arrowHeight / 2
                 - config.borderRadius / 2
-                - config.borderWidth / 2)
+                - config.borderWidth / 2
+				- config.arrowWidth)
+
         case .trailing:
             return -(contentWidth / 2 + config.arrowHeight / 2)
+
         case .trailingTop, .trailingBottom:
             return -(contentWidth / 2
-                + config.arrowHeight / 2
                 - config.borderRadius / 2
-                - config.borderWidth / 2)
+                - config.borderWidth / 2
+				- config.arrowWidth)
         }
     }
 
@@ -59,15 +62,19 @@ struct TooltipModifier<TooltipContent: View>: ViewModifier {
         switch config.side {
         case .leading, .center, .trailing:
             return 0
+
         case .top:
             return (contentHeight / 2 + config.arrowHeight / 2)
+
         case .trailingTop, .leadingTop:
             return (contentHeight / 2
                 + config.arrowHeight / 2
                 - config.borderRadius / 2
                 - config.borderWidth / 2)
+
         case .bottom:
             return -(contentHeight / 2 + config.arrowHeight / 2)
+
         case .leadingBottom, .trailingBottom:
             return -(contentHeight / 2
                 + config.arrowHeight / 2
@@ -76,27 +83,6 @@ struct TooltipModifier<TooltipContent: View>: ViewModifier {
         }
     }
 
-	var arrowBackgroundOffsetX: CGFloat {
-		switch config.side {
-		case .bottom, .center, .top:
-			return 0
-		case .leading, .leadingTop, .leadingBottom:
-			return -1
-		case .trailing, .trailingTop, .trailingBottom:
-			return 1
-		}
-	}
-
-	var arrowBackgroundOffsetY: CGFloat {
-		switch config.side {
-		case .leading, .center, .trailing:
-			return 0
-		case .top, .trailingTop, .leadingTop:
-			return -1
-		case .bottom, .leadingBottom, .trailingBottom:
-			return 1
-		}
-	}
 
     // MARK: - Helper functions
 
@@ -104,11 +90,14 @@ struct TooltipModifier<TooltipContent: View>: ViewModifier {
 		let offset: CGFloat
 
         switch config.side {
-        case .leading, .leadingTop, .leadingBottom:
-			offset = -(contentWidth + config.margin + actualArrowHeight + animationOffset)
+        case .leading:
+			offset = -(contentWidth + config.marginX + actualArrowHeight + animationOffset)
+
+		case .leadingTop, .leadingBottom:
+			offset = -(contentWidth + config.marginX + actualArrowHeight + animationOffset)
 
         case .trailing, .trailingTop, .trailingBottom:
-			offset = g.size.width + config.margin + actualArrowHeight + animationOffset
+			offset = g.size.width + config.marginX + actualArrowHeight + animationOffset
 
         case .top, .center, .bottom:
             offset = (g.size.width - contentWidth) / 2
@@ -121,9 +110,9 @@ struct TooltipModifier<TooltipContent: View>: ViewModifier {
     private func offsetVertical(_ g: GeometryProxy) -> CGFloat {
         switch config.side {
         case .top, .trailingTop, .leadingTop:
-            return -(contentHeight + config.margin + actualArrowHeight + animationOffset)
+            return -(contentHeight + config.marginY + actualArrowHeight + animationOffset)
         case .bottom, .leadingBottom, .trailingBottom:
-            return g.size.height + config.margin + actualArrowHeight + animationOffset
+            return g.size.height + config.marginY + actualArrowHeight + animationOffset
         case .leading, .center, .trailing:
             return (g.size.height - contentHeight) / 2
         }
@@ -158,16 +147,16 @@ struct TooltipModifier<TooltipContent: View>: ViewModifier {
 
     private var arrowView: some View {
 		ArrowShape()
-            .rotation(Angle(radians: self.arrowRotation))
+			.rotation(Angle(radians: config.side.arrowRotation))
 			.stroke(
 				self.config.borderWidth == 0 ? Color.clear : self.config.borderColor,
 				lineWidth: self.config.borderWidth
 			)
 			.background(
 				ArrowShape()
-					.rotation(Angle(radians: self.arrowRotation))
+					.rotation(Angle(radians: config.side.arrowRotation))
 					.fill(self.config.backgroundColor)
-					.offset(x: self.arrowBackgroundOffsetX, y: self.arrowBackgroundOffsetY)
+					.offset(x: config.side.arrowBackgroundOffsetX, y: config.side.arrowBackgroundOffsetY)
 			)
             .frame(width: self.config.arrowWidth, height: self.config.arrowHeight)
 			.offset(x: self.arrowOffsetX, y: self.arrowOffsetY)
@@ -188,7 +177,7 @@ struct TooltipModifier<TooltipContent: View>: ViewModifier {
                     width: self.config.arrowWidth,
                     height: self.config.arrowHeight + self.config.borderWidth
 				)
-                .rotationEffect(Angle(radians: self.arrowRotation))
+                .rotationEffect(Angle(radians: config.side.arrowRotation))
                 .offset(
                     x: self.arrowOffsetX,
                     y: self.arrowOffsetY
@@ -246,44 +235,52 @@ struct TooltipModifier<TooltipContent: View>: ViewModifier {
 struct Tooltip_Previews: PreviewProvider {
 	struct PreviewView: View {
 		let customConfig: TooltipConfig = {
-			var config = DefaultTooltipConfig()
-			config.arrowHeight = 15
-			config.arrowWidth = 25
-			config.borderColor = Color.green
-			config.borderRadius = 0
-			return config
+			var copy = DefaultTooltipConfig()
+			copy.backgroundColor = Color.white
+			copy.borderColor = Color.green
+			copy.borderRadius = 0
+			copy.side = .leadingTop
+			copy.arrowWidth = 25
+			copy.arrowHeight = 15
+			copy.contentPaddingLeft = 0
+			copy.contentPaddingRight = 0
+			copy.contentPaddingTop = 0
+			copy.contentPaddingBottom = 0
+			copy.marginX -= 65
+			return copy
 		}()
 
 		@State private var isPresented: Bool = true
 
 		var body: some View {
-			HStack {
-				VStack(spacing: 100) {
-					Text("Say something nice...")
-						.tooltip(isPresented: .constant(true)) {
-							Text("Something nice!")
-						}
+			VStack(spacing: 100) {
+				Text("Say something nice...")
+					.tooltip(isPresented: .constant(true)) {
+						Text("Something nice!")
+					}
 
-					Text("Say something nice...")
-						.tooltip(isPresented: .constant(true), side: .leading) {
-							Text("Something!")
-						}
+				Text("Say something nice...")
+					.tooltip(isPresented: .constant(true), side: .top) {
+						Text("Something!")
+					}
 
-					Text("Say something nice...")
+				HStack {
+					Spacer()
+
+					Image(systemName: "heart")
+						.font(.system(size: 30))
 						.onTapGesture {
 							withAnimation { isPresented.toggle() }
 						}
-						.tooltip(isPresented: $isPresented, side: .top, config: customConfig) {
-							Text("Something nice!")
+						.tooltip(isPresented: $isPresented, side: .leadingTop, config: customConfig) {
+							VStack {
+								Text("Something nice!")
+							}
+							.frame(minWidth: 260, minHeight: 150)
 						}
 				}
-
-				Spacer()
-
-				VStack {
-					Text("Nice")
-				}
 			}
+			.frame(maxWidth: .infinity)
 			.padding()
 			.background(Color.gray)
 		}
@@ -291,5 +288,6 @@ struct Tooltip_Previews: PreviewProvider {
 
     static var previews: some View {
 		PreviewView()
+			.previewDevice("iPhone 12")
     }
 }

@@ -42,7 +42,7 @@ public enum TooltipSide: Int {
 		case .bottom, .center, .top:
 			return 0
 		case .leading, .leadingTop, .leadingBottom:
-			return -1
+			return 0
 		case .trailing, .trailingTop, .trailingBottom:
 			return 1
 		}

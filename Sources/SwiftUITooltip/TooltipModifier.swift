@@ -70,7 +70,8 @@ struct TooltipModifier<TooltipContent: View>: ViewModifier {
             return (contentHeight / 2
                 + config.arrowHeight / 2
                 - config.borderRadius / 2
-                - config.borderWidth / 2)
+                - config.borderWidth / 2
+				+ 1)
 
         case .bottom:
             return -(contentHeight / 2 + config.arrowHeight / 2)
@@ -158,7 +159,10 @@ struct TooltipModifier<TooltipContent: View>: ViewModifier {
 					.fill(self.config.backgroundColor)
 					.offset(x: config.side.arrowBackgroundOffsetX, y: config.side.arrowBackgroundOffsetY)
 			)
-            .frame(width: self.config.arrowWidth, height: self.config.arrowHeight)
+            .frame(
+				width: self.config.arrowWidth,
+				height: self.config.arrowHeight
+			)
 			.offset(x: self.arrowOffsetX, y: self.arrowOffsetY)
 
     }
@@ -211,7 +215,7 @@ struct TooltipModifier<TooltipContent: View>: ViewModifier {
 				.overlay(self.arrowView)
             }
 			.offset(x: self.offsetHorizontal(g), y: self.offsetVertical(g))
-            .animation(.easeInOut)
+			.animation(config.enableAnimation ? .easeInOut : nil)
             .onAppear {
                 self.dispatchAnimation()
             }
@@ -236,6 +240,7 @@ struct Tooltip_Previews: PreviewProvider {
 	struct PreviewView: View {
 		let customConfig: TooltipConfig = {
 			var copy = DefaultTooltipConfig()
+			copy.enableAnimation = false
 			copy.backgroundColor = Color.white
 			copy.borderColor = Color.green
 			copy.borderRadius = 0
@@ -282,7 +287,7 @@ struct Tooltip_Previews: PreviewProvider {
 			}
 			.frame(maxWidth: .infinity)
 			.padding()
-			.background(Color.gray)
+			.background(Color.red)
 		}
 	}
 
